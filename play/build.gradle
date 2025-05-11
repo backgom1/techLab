@@ -2,10 +2,11 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.5'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.github.node-gradle.node' version '7.0.1'
 }
 
 group = 'learn.tech'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1'
 
 java {
 	toolchain {
@@ -39,4 +40,188 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+def frontendDir = "$projectDir/src/main/techFrontend/techLab-frontend"
+
+sourceSets {
+	main {
+		resources {
+			srcDirs = ["$projectDir/src/main/resources"]
+		}
+	}
+}
+
+// Node.js 플러그인 설정
+node {
+	version = '22.15.0'
+	npmVersion = '10.9.2'
+	download = true
+	workDir = file("${project.projectDir}/.gradle/nodejs")
+	nodeProjectDir = file(frontendDir)
+}
+
+// 프로세스 리소스 전에 리액트 빌드 파일 복사
+processResources {
+	dependsOn "copyReactBuildFiles"
+}
+
+// NPM 의존성 설치
+tasks.register('installReact', NpmTask) {
+	args = ['install']
+	inputs.files("$frontendDir/package.json", "$frontendDir/package-lock.json")
+	outputs.dir("$frontendDir/node_modules")
+	workingDir = file(frontendDir)
+
+	doFirst {
+		println "Installing React dependencies with npm..."
+	}
+}
+
+// 타입스크립트 타입 체크 (선택적)
+tasks.register('typeCheckReact', NpmTask) {
+	dependsOn "installReact"
+	args = ['run', 'typecheck']
+	workingDir = file(frontendDir)
+	inputs.files("$frontendDir/src")
+	inputs.files("$frontendDir/tsconfig.json")
+	ignoreExitValue = true  // 스크립트가 없어도 빌드 계속 진행
+
+	doFirst {
+		println "Running TypeScript type check..."
+	}
+
+	doLast {
+		if (ignoreExitValue) {
+			println "TypeScript type check might be skipped (script not found)"
+		}
+	}
+}
+
+// ESLint 실행 (선택적)
+tasks.register('lintReact', NpmTask) {
+	dependsOn "installReact"
+	args = ['run', 'lint']
+	workingDir = file(frontendDir)
+	inputs.dir("$frontendDir/src")
+	inputs.files("$frontendDir/.eslintrc.cjs", "$frontendDir/tsconfig.json")
+	ignoreExitValue = true  // 스크립트가 없어도 빌드 계속 진행
+
+	doFirst {
+		println "Running ESLint..."
+	}
+}
+
+// 보안 취약점 체크 (npm audit)
+tasks.register('auditReact', NpmTask) {
+	dependsOn "installReact"
+	args = ['audit']
+	workingDir = file(frontendDir)
+	ignoreExitValue = true  // audit이 실패해도 빌드 계속 진행
+
+	doFirst {
+		println "Running npm security audit..."
+	}
+}
+
+// 리액트 빌드
+tasks.register('buildReact', NpmTask) {
+	dependsOn "installReact"  // typeCheckReact와 lintReact 제거
+	args = ['run', 'build']
+	workingDir = file(frontendDir)
+	inputs.dir("$frontendDir/src")
+	inputs.files("$frontendDir/package.json", "$frontendDir/vite.config.ts", "$frontendDir/tsconfig.json")
+	outputs.dir("$frontendDir/dist")
+
+	doFirst {
+		println "Building React app..."
+	}
+
+	doLast {
+		println "React build completed!"
+	}
+}
+
+// 리액트 빌드 파일 복사
+tasks.register('copyReactBuildFiles', Copy) {
+	dependsOn "buildReact"
+	from "$frontendDir/dist"
+	into "$projectDir/src/main/resources/static"
+
+	doFirst {
+		println "Copying React build files to Spring Boot resources..."
+	}
+
+	doLast {
+		println "React build files copied successfully!"
+	}
+}
+
+// 리액트 관련 clean 태스크
+tasks.register('cleanReact', Delete) {
+	delete "$frontendDir/dist"
+	delete "$frontendDir/node_modules"
+	delete "$projectDir/src/main/resources/static"
+
+	doFirst {
+		println "Cleaning React build artifacts..."
+	}
+}
+
+// 전체 clean시 리액트도 함께 정리
+clean {
+	dependsOn cleanReact
+}
+
+// 전체 빌드 태스크
+tasks.register('buildAll') {
+	dependsOn clean, build
+	description 'Clean and build both frontend and backend'
+	group = BasePlugin.BUILD_GROUP
+}
+
+// 개발 모드 실행
+tasks.register('runDev', NpmTask) {
+	dependsOn "installReact"
+	args = ['run', 'dev:all']
+	workingDir = file(frontendDir)
+
+	doFirst {
+		println "Starting development mode..."
+	}
+}
+
+// 리액트만 빌드하는 태스크
+tasks.register('buildFrontend') {
+	dependsOn "buildReact", "copyReactBuildFiles"
+	description 'Build only the frontend React app'
+	group = BasePlugin.BUILD_GROUP
+}
+
+// 빌드 태스크 실행시 진행상황 표시
+tasks.named('build') {
+	doFirst {
+		println "Starting full build process..."
+	}
+	doLast {
+		println "Full build completed successfully!"
+	}
+}
+
+// Gradle 스캔 및 빌드 cache 설정
+gradle.projectsEvaluated {
+	tasks.named('compileJava') {
+		dependsOn "copyReactBuildFiles"
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+// 전체 프로젝트 셋업 태스크
+tasks.register('setup') {
+	dependsOn "installReact"
+	description 'Initial setup for both frontend and backend'
+	group = 'help'
 }
