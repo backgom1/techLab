@@ -1,7 +1,7 @@
 import {HttpClient, type ApiResponse} from "../../common/HttpClient.ts";
 
 
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = 'http://localhost:8080/api/v1';
 
 
 export interface User {
@@ -29,7 +29,7 @@ export class AuthService {
 
     // 로그인 메서드
     public async login(request: LoginRequest): Promise<ApiResponse<LoginResponse>> {
-        return this.httpClient.post<LoginResponse, LoginRequest>('/api/v1/auth/login', request);
+        return this.httpClient.post<LoginResponse, LoginRequest>('/auth/login', request);
     }
 
     // 사용자 정보 조회
@@ -49,6 +49,7 @@ export class AuthService {
 
     // JWT 토큰 저장
     public saveToken(token: string): void {
+        console.log(token);
         localStorage.setItem('token', token);
     }
 

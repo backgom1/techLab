@@ -1,8 +1,15 @@
 import axios, {AxiosError, type AxiosInstance, type AxiosRequestConfig, type AxiosResponse} from "axios";
 
 
-export interface ApiResponse<T = any> {
+export interface BackendResponse<T = any> {
+    success: boolean;
+    message: string;
+    messageCode: string;
     data: T;
+}
+
+export interface ApiResponse<T = any> {
+    data: BackendResponse<T>;
     status: number;
     statusText: string;
     headers: any;
@@ -63,7 +70,7 @@ export class HttpClient {
         config?: AxiosRequestConfig
     ): Promise<ApiResponse<T>> {
         try {
-            const response: AxiosResponse<T> = await this.instance.get<T>(url, config);
+            const response: AxiosResponse<BackendResponse<T>> = await this.instance.get<BackendResponse<T>>(url, config);
             return {
                 data: response.data,
                 status: response.status,
@@ -82,7 +89,7 @@ export class HttpClient {
         config?: AxiosRequestConfig
     ): Promise<ApiResponse<T>> {
         try {
-            const response: AxiosResponse<T> = await this.instance.post<T>(url, data, config);
+            const response: AxiosResponse<BackendResponse<T>> = await this.instance.post<BackendResponse<T>>(url, data, config);
             return {
                 data: response.data,
                 status: response.status,
@@ -101,7 +108,7 @@ export class HttpClient {
         config?: AxiosRequestConfig
     ): Promise<ApiResponse<T>> {
         try {
-            const response: AxiosResponse<T> = await this.instance.put<T>(url, data, config);
+            const response: AxiosResponse<BackendResponse<T>> = await this.instance.put<BackendResponse<T>>(url, data, config);
             return {
                 data: response.data,
                 status: response.status,
@@ -119,7 +126,7 @@ export class HttpClient {
         config?: AxiosRequestConfig
     ): Promise<ApiResponse<T>> {
         try {
-            const response: AxiosResponse<T> = await this.instance.delete<T>(url, config);
+            const response: AxiosResponse<BackendResponse<T>> = await this.instance.delete<BackendResponse<T>>(url, config);
             return {
                 data: response.data,
                 status: response.status,

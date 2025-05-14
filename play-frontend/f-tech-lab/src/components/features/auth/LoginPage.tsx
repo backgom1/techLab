@@ -32,7 +32,7 @@ const LoginPage: React.FC = () => {
 
         try {
             const response = await authService.login(formData);
-            authService.saveToken(response.data.token);
+            authService.saveToken(response.data.data.token);
 
             navigate('/dashboard');
         } catch (err : any) {
