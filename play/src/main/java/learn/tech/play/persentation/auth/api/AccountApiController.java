@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AccountApiController {
     private final AccountService accountService;
 
-    @PostMapping("/api/v1/register")
+    @PostMapping("/api/v1/account/register")
     public ApiResponse<Void> register(@RequestBody RegisterRequest request) {
         accountService.register(request);
         return ApiResponse.success("회원가입이 완료되었습니다.");

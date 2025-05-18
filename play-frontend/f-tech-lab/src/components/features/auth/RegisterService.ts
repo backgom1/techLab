@@ -1,7 +1,7 @@
 import {HttpClient, type ApiResponse} from "../../common/HttpClient.ts";
 
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = '/api/v1';
 
 
 export interface RegisterRequest {
@@ -19,7 +19,7 @@ export class RegisterService {
     }
 
     public async register(request: RegisterRequest): Promise<ApiResponse<VoidFunction>> {
-        return this.httpClient.post<VoidFunction, RegisterRequest>('/register', request);
+        return this.httpClient.post<VoidFunction, RegisterRequest>('/account/register', request);
     }
 }
 

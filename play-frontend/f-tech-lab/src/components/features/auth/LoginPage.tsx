@@ -4,19 +4,49 @@ import {
     Container,
     Box,
     Typography,
-    Paper
+    Paper,
+    Snackbar, Alert
 } from '@mui/material';
-import {type ChangeEvent, type FormEvent, useState} from "react";
+import {type ChangeEvent, type FormEvent, useEffect, useState} from "react";
 import * as React from "react";
-import {useNavigate} from "react-router";
+import {useLocation, useNavigate} from "react-router";
 import {authService, type LoginRequest} from "./AuthService.ts";
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+
     const [formData, setFormData] = useState<LoginRequest>({
         email: '',
         password: ''
     });
+
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success' as 'success' | 'error'
+    });
+
+
+    useEffect(() => {
+        if (location.state?.registrationSuccess) {
+            setSnackbar({
+                open: true,
+                message: '회원가입이 성공적으로 완료되었습니다!',
+                severity: 'success'
+            });
+
+            window.history.replaceState({}, document.title);
+        }
+    }, [location]);
+
+    const handleCloseSnackbar = () => {
+        setSnackbar({
+            ...snackbar,
+            open: false
+        });
+    };
+
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
         const {name, value} = e.target;
@@ -32,7 +62,7 @@ const LoginPage: React.FC = () => {
 
         try {
             const response = await authService.login(formData);
-            authService.saveToken(response.data.data.token);
+            authService.saveToken(response.data.data.accessToken);
 
             navigate('/dashboard');
         } catch (err : any) {
@@ -94,6 +124,20 @@ const LoginPage: React.FC = () => {
                     </Box>
                 </Paper>
             </Box>
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={6000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={handleCloseSnackbar}
+                    severity={snackbar.severity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Container>
     );
 }

@@ -6,6 +6,7 @@ import HomePage from "./components/features/auth/HomePage.tsx";
 import LoginPage from "./components/features/auth/LoginPage.tsx";
 import DashBoard from "./components/features/dashboard/DashBoard.tsx";
 import RegisterPage from "./components/features/auth/RegisterPage.tsx";
+import ProtectedRoute from "./components/features/auth/ProtectedRoute.tsx";
 
 const router = createBrowserRouter([
     {
@@ -26,7 +27,7 @@ const router = createBrowserRouter([
             },
             {
                 path: "dashboard",
-                element: <DashBoard/>,
+                element: <ProtectedRoute><DashBoard/></ProtectedRoute>,
             }
         ],
     },

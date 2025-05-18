@@ -69,11 +69,12 @@ const RegisterPage = () => {
                     message: '회원가입이 성공적으로 완료되었습니다!',
                     severity: 'success'
                 });
-                navigate('/login');
-                // 3초 후 로그인 페이지로 이동
-                setTimeout(() => {
-                    navigate('/login');
-                }, 3000);
+                navigate('/login', {
+                    state: {
+                        registrationSuccess: true,
+                        message: '회원가입이 성공적으로 완료되었습니다!'
+                    }
+                });
             } else {
                 throw new Error('회원가입 실패');
             }

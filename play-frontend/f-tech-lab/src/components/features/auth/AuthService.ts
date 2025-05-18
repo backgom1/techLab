@@ -1,7 +1,7 @@
 import {HttpClient, type ApiResponse} from "../../common/HttpClient.ts";
 
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = '/api/v1';
 
 
 export interface User {
@@ -16,8 +16,7 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-    token: string;
-    user: User;
+    accessToken: string;
 }
 
 export class AuthService {
@@ -49,18 +48,17 @@ export class AuthService {
 
     // JWT 토큰 저장
     public saveToken(token: string): void {
-        console.log(token);
-        localStorage.setItem('token', token);
+        localStorage.setItem('accessToken', token);
     }
 
     // JWT 토큰 가져오기
     public getToken(): string | null {
-        return localStorage.getItem('token');
+        return localStorage.getItem('accessToken');
     }
 
     // JWT 토큰 삭제 (로그아웃)
     public removeToken(): void {
-        localStorage.removeItem('token');
+        localStorage.removeItem('accessToken');
     }
 }
 

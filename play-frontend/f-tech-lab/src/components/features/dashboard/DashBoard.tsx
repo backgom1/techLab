@@ -1,5 +1,11 @@
+import {dashBoardService} from "./DashBoardService.ts";
+
 const DashBoard = () =>{
-    return <div>대시보드 페이지</div>
+
+  const promise = dashBoardService.list();
+    console.log(promise);
+
+    return <div>promise</div>
 }
 
 export default DashBoard;

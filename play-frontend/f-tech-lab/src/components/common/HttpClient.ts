@@ -1,4 +1,5 @@
 import axios, {AxiosError, type AxiosInstance, type AxiosRequestConfig, type AxiosResponse} from "axios";
+import {useNavigate} from "react-router";
 
 
 export interface BackendResponse<T = any> {
@@ -14,6 +15,30 @@ export interface ApiResponse<T = any> {
     statusText: string;
     headers: any;
 }
+
+let redirectHandler: ((to: string, message?: string) => void) | null = null;
+
+export const setRedirectHandler = (handler: (to: string, message?: string) => void) => {
+    redirectHandler = handler;
+};
+
+export const useAuthRedirect = () => {
+    const navigate = useNavigate();
+
+    const redirectToLogin = (message?: string) => {
+        navigate('/login', {
+            state: {
+                from: window.location.pathname,
+                errorMessage: message
+            }
+        });
+    };
+
+    // 리다이렉트 핸들러 설정
+    setRedirectHandler(redirectToLogin);
+
+    return { redirectToLogin };
+};
 
 
 export class HttpClient {
@@ -36,7 +61,7 @@ export class HttpClient {
         this.instance.interceptors.request.use(
             (config) => {
                 // 토큰이 필요한 경우 여기서 처리
-                const token = localStorage.getItem("token");
+                const token = localStorage.getItem("accessToken");
                 if (token) {
                     config.headers["Authorization"] = `Bearer ${token}`;
                 }
@@ -55,9 +80,16 @@ export class HttpClient {
             (error) => {
                 // 401 에러 처리 (토큰 만료 등)
                 if (error.response && error.response.status === 401) {
-                    // 로그아웃 처리 또는 토큰 갱신 로직
-                    localStorage.removeItem("token");
-                    // window.location.href = "/login"; // 로그인 페이지로 리다이렉트
+                    // 로그아웃 처리
+                    localStorage.removeItem("accessToken");
+
+                    // 리다이렉트 핸들러가 설정되어 있으면 로그인 페이지로 리다이렉트
+                    if (redirectHandler) {
+                        redirectHandler('/login', '인증이 만료되었습니다. 다시 로그인해주세요.');
+                    } else {
+                        // 리다이렉트 핸들러가 없는 경우 기본 리다이렉션 사용
+                        window.location.href = "/login";
+                    }
                 }
                 return Promise.reject(error);
             }
