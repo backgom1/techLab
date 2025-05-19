@@ -11,10 +11,12 @@ import {type ChangeEvent, type FormEvent, useEffect, useState} from "react";
 import * as React from "react";
 import {useLocation, useNavigate} from "react-router";
 import {authService, type LoginRequest} from "./AuthService.ts";
+import {useAuth} from "../../common/AuthContext.tsx";
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const {setIsAuthenticated} = useAuth();
 
     const [formData, setFormData] = useState<LoginRequest>({
         email: '',
@@ -36,9 +38,9 @@ const LoginPage: React.FC = () => {
                 severity: 'success'
             });
 
-            window.history.replaceState({}, document.title);
+            navigate(location.pathname, {replace: true, state: {}});
         }
-    }, [location]);
+    }, [location, navigate]);
 
     const handleCloseSnackbar = () => {
         setSnackbar({
@@ -59,14 +61,18 @@ const LoginPage: React.FC = () => {
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
         e.preventDefault();
-
         try {
             const response = await authService.login(formData);
-            authService.saveToken(response.data.data.accessToken);
-
+            // 로그인 성공 시 인증 상태 업데이트
+            setIsAuthenticated(true); // 추가
             navigate('/dashboard');
-        } catch (err : any) {
-            console.log("로그인 실패")
+        } catch (err: any) {
+            console.log("로그인 실패");
+            setSnackbar({
+                open: true,
+                message: '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.',
+                severity: 'error'
+            });
         }
     };
 
@@ -128,12 +134,12 @@ const LoginPage: React.FC = () => {
                 open={snackbar.open}
                 autoHideDuration={6000}
                 onClose={handleCloseSnackbar}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
             >
                 <Alert
                     onClose={handleCloseSnackbar}
                     severity={snackbar.severity}
-                    sx={{ width: '100%' }}
+                    sx={{width: '100%'}}
                 >
                     {snackbar.message}
                 </Alert>

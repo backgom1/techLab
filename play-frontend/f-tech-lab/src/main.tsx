@@ -2,11 +2,11 @@ import ReactDOM from 'react-dom/client';
 import './index.css'
 import App from './App.tsx'
 import {createBrowserRouter, RouterProvider} from "react-router";
-import HomePage from "./components/features/auth/HomePage.tsx";
+import HomePage from "./components/features/HomePage.tsx";
 import LoginPage from "./components/features/auth/LoginPage.tsx";
 import DashBoard from "./components/features/dashboard/DashBoard.tsx";
-import RegisterPage from "./components/features/auth/RegisterPage.tsx";
-import ProtectedRoute from "./components/features/auth/ProtectedRoute.tsx";
+import RegisterPage from "./components/features/account/RegisterPage.tsx";
+import ProtectedRoute from "./components/common/ProtectedRoute.tsx";
 
 const router = createBrowserRouter([
     {

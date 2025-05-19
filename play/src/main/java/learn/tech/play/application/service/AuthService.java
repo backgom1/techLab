@@ -20,12 +20,6 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
 
 
-    /*
-        Todo: 1. Spring Security를 연동
-              2. 로그인이 완료되면 SecurityContext의 사용자 정보 담기
-              3. 토큰 반환
-              4. 토큰 검증시 레디스 활용
-     */
     public LoginResponse login(LoginRequest request){
         Account account = accountJpaRepository.findByEmailAndPassword(request.getEmail(), request.getPassword())
                 .orElseThrow(()->new UsernameNotFoundException("사용자 및 비밀번호가 올바르지 않습니다."));
