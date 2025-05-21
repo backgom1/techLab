@@ -25,11 +25,6 @@ export class AuthService {
         this.httpClient = new HttpClient(API_BASE_URL);
     }
 
-    public setupInterceptors(redirectCallback: (to: string, message?: string) => void): void {
-        this.httpClient.setInterceptors(redirectCallback);
-    }
-
-
     // 로그인 메서드
     public async login(request: LoginRequest): Promise<ApiResponse<LoginResponse>> {
         return this.httpClient.post<LoginResponse, LoginRequest>('/auth/login', request);

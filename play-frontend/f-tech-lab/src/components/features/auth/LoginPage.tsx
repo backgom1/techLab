@@ -11,12 +11,10 @@ import {type ChangeEvent, type FormEvent, useEffect, useState} from "react";
 import * as React from "react";
 import {useLocation, useNavigate} from "react-router";
 import {authService, type LoginRequest} from "./AuthService.ts";
-import {useAuth} from "../../common/AuthContext.tsx";
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const {setIsAuthenticated} = useAuth();
 
     const [formData, setFormData] = useState<LoginRequest>({
         email: '',
@@ -63,8 +61,7 @@ const LoginPage: React.FC = () => {
         e.preventDefault();
         try {
             const response = await authService.login(formData);
-            // 로그인 성공 시 인증 상태 업데이트
-            setIsAuthenticated(true); // 추가
+            console.log(response);
             navigate('/dashboard');
         } catch (err: any) {
             console.log("로그인 실패");

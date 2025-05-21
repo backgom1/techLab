@@ -1,13 +1,18 @@
 package learn.tech.play.persentation.auth.api;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import learn.tech.play.application.service.AuthService;
+import learn.tech.play.domain.SecurityUser;
 import learn.tech.play.infra.util.ApiResponse;
 import learn.tech.play.infra.util.CookieUtil;
 import learn.tech.play.persentation.auth.dto.LoginRequest;
 import learn.tech.play.persentation.auth.dto.LoginResponse;
+import learn.tech.play.persentation.auth.dto.RefreshResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseCookie;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,5 +30,13 @@ public class AuthApiController {
         LoginResponse login = authService.login(request);
         CookieUtil.addAccessTokenCookie(response, login.getAccessToken(), 60 * 60 * 24);
         return ApiResponse.success(login, "로그인을 성공했습니다.");
+    }
+
+    @PostMapping("/api/v1/auth/refresh")
+    public ApiResponse<Void> refresh(HttpServletRequest request, HttpServletResponse response) {
+        CookieUtil.deleteAccessTokenCookie(response);
+        RefreshResponse refreshResponse = authService.refreshToken(request);
+        CookieUtil.addAccessTokenCookie(response, refreshResponse.getAccessToken(), 60 * 60 * 24);
+        return ApiResponse.success("토큰 갱신을 완료했습니다.");
     }
 }

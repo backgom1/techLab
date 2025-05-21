@@ -5,7 +5,9 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.annotation.PostConstruct;
 import learn.tech.play.domain.SecurityUser;
+import learn.tech.play.infra.enums.TokenStatus;
 import lombok.extern.slf4j.Slf4j;
+import org.antlr.v4.runtime.Token;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -62,34 +64,50 @@ public class JwtTokenProvider {
 
     }
 
-    public boolean validateToken(String token) {
+    public TokenStatus validateToken(String token) {
         try {
-            Jwts.parser()
+            Jws<Claims> claimsJws = Jwts.parser()
                     .verifyWith(key)
                     .build()
                     .parseSignedClaims(token);
-            return true;
+            return TokenStatus.PASS;
         } catch (SecurityException | MalformedJwtException | SignatureException e) {
             log.error("Invalid JWT signature: {}", e.getMessage());
+            return TokenStatus.INVALID;
         } catch (ExpiredJwtException e) {
             log.error("Expired JWT token: {}", e.getMessage());
+            return TokenStatus.EXPIRED;
         } catch (UnsupportedJwtException e) {
             log.error("Unsupported JWT token: {}", e.getMessage());
+            return TokenStatus.UNSUPPORTED;
         } catch (IllegalArgumentException e) {
             log.error("JWT token compact of handler are invalid: {}", e.getMessage());
+            return TokenStatus.INVALID;
         }
-        return false;
     }
 
-    public Claims getClaims(String bearerToken) {
+    public Claims getClaims(String token) {
         try {
             return Jwts.parser()
                     .verifyWith(key)
                     .build()
-                    .parseSignedClaims(bearerToken)
+                    .parseSignedClaims(token)
                     .getPayload();
         } catch (Exception e) {
             log.error("Failed to get claims from token: {}", e.getMessage());
+            throw new RuntimeException("에러");
+        }
+    }
+
+    public Claims getExpiredClaims(String token) {
+        try {
+            return Jwts.parser()
+                    .verifyWith(key)
+                    .clockSkewSeconds(Integer.MAX_VALUE) // 아주 큰 시간 오차를 허용하여 만료 검사 우회
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (Exception e) {
             throw new RuntimeException("에러");
         }
     }
