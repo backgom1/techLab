@@ -7,13 +7,13 @@ import jakarta.annotation.PostConstruct;
 import learn.tech.play.domain.SecurityUser;
 import learn.tech.play.infra.enums.TokenStatus;
 import lombok.extern.slf4j.Slf4j;
-import org.antlr.v4.runtime.Token;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -40,13 +40,14 @@ public class JwtTokenProvider {
     }
 
 
-    public String generateAccessToken(SecurityUser user) {
+    public String generateAccessToken(SecurityUser user, String refreshId) {
         Date now = new Date();
 
         return Jwts.builder()
                 .subject(user.getUsername())
                 .claim("id", (Long) user.getId())
                 .claim("name", user.getUsername())
+                .claim("refreshId", refreshId)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + accessTokenValidityInMilliseconds))
                 .signWith(key) // 0.12.xx 버전은 자동으로 알고리즘 키를 유추하여 넣어 주기때문에 기존 알고리즘 선택 방식은 올바르지 않다. -> 타입 안정성
@@ -56,7 +57,8 @@ public class JwtTokenProvider {
     public String generateRefreshToken(SecurityUser user) {
         Date now = new Date();
         return Jwts.builder()
-                .subject(user.getPassword())
+                .subject(user.getUsername())
+                .id(UUID.randomUUID().toString())
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + refreshTokenValidityInMilliseconds))
                 .signWith(key)//자동으로 알고리즘 키를 유추하여 넣어 주기때문에 기존 알고리즘 선택 방식은 올바르지 않다. -> 타입 안정성

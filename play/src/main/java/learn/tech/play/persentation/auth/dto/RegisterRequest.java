@@ -1,13 +1,15 @@
 package learn.tech.play.persentation.auth.dto;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 public class RegisterRequest {
 
-    private final String name;
-    private final String email;
-    private final String password;
+    private String name;
+    private String email;
+    private String password;
 
     private RegisterRequest(String password, String email, String name) {
         this.password = password;
